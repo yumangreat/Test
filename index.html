@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タップして進む</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            user-select: none;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        .box {
+            padding: 30px;
+            border: 2px solid #fff;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 id="msg">画面をタップしてください</h2>
+    </div>
+
+    <script>
+        document.body.addEventListener('click', function() {
+            document.body.style.backgroundColor = '#ff0000';
+            const msg = document.getElementById('msg');
+            const targetText = 'せっくすちんこうんこまんこ';
+            
+            msg.innerText = targetText;
+            msg.style.fontSize = '24px';
+
+            // 1. タップ直後の警告音（ビープ音）
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch(e) {}
+
+            // 2. 日本語で無限ループ再生する関数
+            function speakLoop() {
+                const speech = new SpeechSynthesisUtterance(targetText);
+                speech.lang = 'ja-JP'; // 日本語読み上げに設定
+                speech.volume = 1.0;
+                speech.rate = 1.2;   // 繰り返し聞こえるようやや早めに設定
+
+                // 再生が終わったら自動で次の再生を開始
+                speech.onend = function() {
+                    speakLoop();
+                };
+
+                window.speechSynthesis.speak(speech);
+            }
+
+            speakLoop();
+        }, { once: true });
+    </script>
+</body>
+</html>
